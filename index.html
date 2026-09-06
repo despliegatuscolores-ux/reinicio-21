@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reinicio 21 | Bienestar Integral</title>
+    <style>
+        :root {
+            --primary: #2C3E50;
+            --bg: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --accent: #3498DB;
+            --text: #333333;
+            --light-text: #7F8C8D;
+            --border: #E0E0E0;
+        }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { margin: 0; padding: 0; background-color: var(--bg); color: var(--text); }
+        header { background-color: var(--card-bg); padding: 20px; text-align: center; border-bottom: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        h1 { margin: 0; font-size: 24px; color: var(--primary); letter-spacing: -0.5px; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        
+        /* Select Screen */
+        #setup-screen { display: block; }
+        .intro-text { text-align: center; margin-bottom: 30px; color: var(--light-text); line-height: 1.5; }
+        select { width: 100%; padding: 15px; font-size: 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; background-color: var(--card-bg); outline: none; }
+        button { width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background-color: #1a252f; }
+
+        /* Dashboard Screen */
+        #dashboard-screen { display: none; }
+        .plan-header { background-color: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .plan-header h2 { margin: 0 0 5px 0; font-size: 20px; }
+        .plan-header p { margin: 0; opacity: 0.8; font-size: 14px; }
+        
+        .day-navigation { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .day-nav-btn { width: auto; padding: 10px 20px; background-color: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        
+        .task-card { background: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; align-items: flex-start; border-left: 4px solid var(--accent); }
+        .task-card.físico { border-left-color: #E74C3C; }
+        .task-card.mental { border-left-color: #3498DB; }
+        .task-card.alma { border-left-color: #9B59B6; }
+        .task-card.espíritu { border-left-color: #1ABC9C; }
+        
+        input[type="checkbox"] { margin-top: 5px; margin-right: 15px; width: 20px; height: 20px; cursor: pointer; }
+        .task-content h3 { margin: 0 0 5px 0; font-size: 16px; color: var(--primary); text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+        .task-content p { margin: 0; font-size: 15px; line-height: 1.5; }
+        .completed p { text-decoration: line-through; color: var(--light-text); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Reinicio 21</h1>
+    </header>
+
+    <div class="container">
+        <!-- Pantalla de Selección -->
+        <div id="setup-screen">
+            <p class="intro-text">Selecciona tu estado emocional predominante hoy. Nuestro sistema diseñará un plan de 21 días de regulación fisiológica, cognitiva y de frecuencia para devolverte al equilibrio.</p>
+            <select id="emotion-select">
+                <option value="" disabled selected>Selecciona tu estado actual...</option>
+                <!-- Escala de Hawkins (Contracción) -->
+                <option value="verguenza">Vergüenza (20 Hz)</option>
+                <option value="culpa">Culpa (30 Hz)</option>
+                <option value="apatia">Apatía (50 Hz)</option>
+                <option value="tristeza">Tristeza / Sufrimiento (75 Hz)</option>
+                <option value="miedo">Miedo / Ansiedad (100 Hz)</option>
+                <option value="deseo">Deseo / Frustración (125 Hz)</option>
+                <option value="ira">Ira / Resentimiento (150 Hz)</option>
+                <option value="orgullo">Orgullo / Rigidez (175 Hz)</option>
+            </select>
+            <button onclick="startPlan()">Generar mi Plan</button>
+        </div>
+
+        <!-- Pantalla del Plan Diario -->
+        <div id="dashboard-screen">
+            <div class="plan-header">
+                <h2 id="plan-title">Plan Hacia el Coraje</h2>
+                <p id="plan-subtitle">Día 1 de 21</p>
+            </div>
+            
+            <div class="day-navigation">
+                <button class="day-nav-btn" onclick="changeDay(-1)">Anterior</button>
+                <strong id="current-day-label">Día 1</strong>
+                <button class="day-nav-btn" onclick="changeDay(1)">Siguiente</button>
+            </div>
+
+            <div id="tasks-container">
+                <!-- Las tareas se inyectan aquí vía JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Base de datos integrada
+        const appData = {
+            plans: {
+                "miedo": [
+                    {
+                        day: 1,
+                        fisico: "Bebe un vaso de agua al despertar. Realiza 3 respiraciones diafragmáticas profundas expandiendo el abdomen, no el pecho. Esto desactiva la alerta biológica.",
+                        mental: "Escribe en tu teléfono el peor escenario que tu mente está proyectando hoy. Al lado, escribe un hecho objetivo y neutral que ocurra en tu presente inmediato.",
+                        alma: "Acto de anclaje: Lleva un objeto pequeño (una moneda, una piedra lisa) en el bolsillo. Tócalo físicamente cada vez que notes que tu mente viaja al futuro.",
+                        espiritu: "Neuro-Frecuencia: Escucha 3 minutos de ruido marrón o frecuencia a 432Hz. Visualiza una sensación de peso y anclaje bajando hacia tus pies."
+                    },
+                    {
+                        day: 2,
+                        fisico: "Camina 10 minutos prestando atención exclusiva a la planta de tus pies tocando el suelo. Mantén la barbilla paralela al suelo.",
+                        mental: "Identifica un 'debería' que te esté presionando hoy. Cámbialo verbalmente por un 'elijo'.",
+                        alma: "Acto de anclaje: Ordena y limpia una sola superficie pequeña de tu entorno laboral o personal. El orden físico calma la estructura mental.",
+                        espiritu: "Neuro-Frecuencia: Siéntate en silencio 2 minutos. Visualiza el miedo no como un enemigo, sino como un sensor de tu cuerpo que está mal calibrado."
+                    }
+                    // Copia y pega bloques como este para los días del 3 al 21
+                ],
+                "apatia": [
+                    {
+                        day: 1,
+                        fisico: "Termina tu ducha con 10 segundos de agua fría para generar un pico de dopamina natural en el sistema nervioso.",
+                        mental: "Anota una sola cosa, por mínima que sea (un café, una canción), que solía darte un ligero placer antes de esta etapa.",
+                        alma: "Acto de anclaje: Deshazte hoy de un objeto físico en tu casa que te conecte con una etapa de estancamiento. Tíralo o dónalo.",
+                        espiritu: "Neuro-Frecuencia: Escucha música a 528Hz durante 5 minutos mirando por la ventana, sin pantallas."
+                    }
+                ]
+                // Agrega el resto de emociones (culpa, ira, orgullo...) siguiendo esta misma estructura
+            }
+        };
+
+        let currentEmotion = "";
+        let currentDay = 1;
+
+        function startPlan() {
+            const select = document.getElementById('emotion-select');
+            if(!select.value) return alert("Por favor, selecciona un estado.");
+            
+            currentEmotion = select.value;
+            currentDay = 1;
+            
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('dashboard-screen').style.display = 'block';
+            
+            updateDashboard();
+        }
+
+        function changeDay(delta) {
+            const plan = appData.plans[currentEmotion];
+            if(!plan) return;
+            
+            const newDay = currentDay + delta;
+            if(newDay >= 1 && newDay <= plan.length) {
+                currentDay = newDay;
+                updateDashboard();
+            }
+        }
+
+        function toggleTask(element) {
+            const content = element.nextElementSibling;
+            if(element.checked) {
+                content.classList.add('completed');
+            } else {
+                content.classList.remove('completed');
+            }
+        }
+
+        function updateDashboard() {
+            const plan = appData.plans[currentEmotion];
+            if(!plan) {
+                document.getElementById('tasks-container').innerHTML = "<p>Plan en desarrollo. Vuelve pronto.</p>";
+                return;
+            }
+
+            const selectElement = document.getElementById('emotion-select');
+            const emotionName = selectElement.options[selectElement.selectedIndex].text;
+            
+            document.getElementById('plan-title').innerText = "Regulación: " + emotionName.split(" (")[0];
+            document.getElementById('plan-subtitle').innerText = "Día " + currentDay + " de 21";
+            document.getElementById('current-day-label').innerText = "Día " + currentDay;
+
+            const dayData = plan.find(d => d.day === currentDay);
+            const container = document.getElementById('tasks-container');
+            
+            if(dayData) {
+                container.innerHTML = `
+                    <div class="task-card físico">
+                        <input type="checkbox" onchange="toggleTask(this)">
+                        <div class="task-content">
+                            <h3>Soma (Fisiología)</h3>
+                            <p>${dayData.fisico}</p>
+                        </div>
+                    </div>
+                    <div class="task-card mental">
+                        <input type="checkbox" onchange="toggleTask(this)">
+                        <div class="task-content">
+                            <h3>Mindset (Cognición)</h3>
+                            <p>${dayData.mental}</p>
+                        </div>
+                    </div>
+                    <div class="task-card alma">
+                        <input type="checkbox" onchange="toggleTask(this)">
+                        <div class="task-content">
+                            <h3>Anclaje Simbólico</h3>
+                            <p>${dayData.alma}</p>
+                        </div>
+                    </div>
+                    <div class="task-card espíritu">
+                        <input type="checkbox" onchange="toggleTask(this)">
+                        <div class="task-content">
+                            <h3>Neuro-Frecuencia</h3>
+                            <p>${dayData.espiritu}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = "<p>Contenido del día en desarrollo.</p>";
+            }
+        }
+    </script>
+</body>
+</html>
