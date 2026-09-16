@@ -2257,8 +2257,27 @@
         function renderDashboard() {
             const planData = database[currentPlan];
             document.getElementById('planName').innerText = planData.title;
-            document.getElementById('dayLabel').innerText = `Día ${currentDay} de 21`;
             
+            // 1. Ajuste dinámico de los días (detecta si el plan es de 21, 7 o 3 días)
+            document.getElementById('dayLabel').innerText = `Día ${currentDay} de ${planData.days.length}`;
+            
+            // 2. INYECCIÓN DEL AVISO DE MAESTRÍA
+            let noticeContainer = document.getElementById('masteryNoticeContainer');
+            // Si el contenedor no existe, lo creamos y lo ponemos justo antes de los botones de navegación
+            if (!noticeContainer) {
+                noticeContainer = document.createElement('div');
+                noticeContainer.id = 'masteryNoticeContainer';
+                document.querySelector('.day-nav').before(noticeContainer);
+            }
+
+            // Si el protocolo tiene descripción (Fase 3), pintamos la caja premium. Si no, la ocultamos.
+            if (planData.description) {
+                noticeContainer.innerHTML = `<div class="mastery-notice"><em>${planData.description}</em></div>`;
+                noticeContainer.style.display = 'block';
+            } else {
+                noticeContainer.style.display = 'none';
+            }
+
             // Navegación
             document.getElementById('prevBtn').disabled = (currentDay === 1);
             document.getElementById('nextBtn').disabled = (currentDay === planData.days.length);
@@ -2280,7 +2299,7 @@
                 list.innerHTML = `<div class="task-card"><p>Contenido del Día ${currentDay} en desarrollo.</p></div>`;
             }
         }
-
+        
         function createTaskHTML(type, label, desc) {
             const taskId = `${currentPlan}_d${currentDay}_${type}`;
             const isChecked = completedTasks[taskId] ? 'checked' : '';
